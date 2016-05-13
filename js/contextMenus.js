@@ -812,6 +812,17 @@ function mainTemplateInit (nodeProps, frame) {
       })
   }
 
+  template.push(
+    CommonMenu.separatorMenuItem,
+    {
+      label: 'Lastpass',
+      click: (item, focusedWindow) => {
+        if (focusedWindow) {
+          ipc.send('chrome-browser-action-clicked', 'hdokiejnpimakedhajhdlcegeplioahd', 'Lastpass', nodeProps)
+        }
+      }
+    })
+
   return template
 }
 

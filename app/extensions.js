@@ -4,6 +4,7 @@ const AppStore = require('../js/stores/appStore')
 const { getAppUrl, getExtensionsPath } = require('../js/lib/appUrlUtil')
 const getSetting = require('../js/settings').getSetting
 const messages = require('../js/constants/messages')
+const path = require('path')
 const settings = require('../js/constants/settings')
 
 let generateBraveManifest = () => {
@@ -82,6 +83,12 @@ let generateBraveManifest = () => {
 
 module.exports.init = () => {
   process.on('chrome-browser-action-popup', function (extensionId, name, props, popup) {
+    // popup min/max height/width
+    props.minHeight = 25
+    props.maxHeight = 600
+    props.minWidth = 25
+    props.maxWidth = 800
+
     let win = BrowserWindow.getFocusedWindow()
     if (!win) {
       return
@@ -95,7 +102,7 @@ module.exports.init = () => {
     if (installInfo.error) {
       console.error(installInfo.error)
     }
-    installedExtensions[installInfo.name] = installInfo
+    installedExtensions[path.basename(installInfo.path)] = installInfo
   }
 
   let installExtension = (name, path, options = {}) => {
@@ -118,6 +125,7 @@ module.exports.init = () => {
 
   let enableExtensions = () => {
     installExtension('brave', getExtensionsPath(), {manifest_location: 'component', manifest: generateBraveManifest()})
+    installExtension('lastpass', getExtensionsPath())
 
     if (getSetting(settings.ONE_PASSWORD_ENABLED)) {
       installExtension('1password', getExtensionsPath())

@@ -17,7 +17,21 @@ class PopupWindow extends ImmutableComponent {
     if (src) {
       let webview = document.createElement('webview')
       webview.setAttribute('src', src)
+      webview.setAttribute('autosize', 'on')
+      // webview.setAttribute('minwidth', this.props.detail.get('minWidth'))
+      // webview.setAttribute('maxWidth', this.props.detail.get('maxWidth'))
+      // webview.setAttribute('minHeight', this.props.detail.get('minHeight'))
+      // webview.setAttribute('maxHeight', this.props.detail.get('maxHeight'))
+      webview.addEventListener('did-stop-loading', function () {
+        console.log('height', webview.shadowRoot.lastChild.scrollHeight)
+        console.log('width', webview.shadowRoot.lastChild.scrollWidth)
+      })
       ReactDOM.findDOMNode(this).appendChild(webview)
+
+      // webview.style.height = '429px' // 398
+      // webview.style.width = '320px' // 300
+      // ReactDOM.findDOMNode(this).style.height = '431px' // 2 larger for border webview.shadowRoot.lastChild.scrollHeight
+      // ReactDOM.findDOMNode(this).style.width = '322px' // webview.shadowRoot.lastChild.scrollWidth
     }
   }
 
@@ -44,7 +58,12 @@ class PopupWindow extends ImmutableComponent {
     if (this.props.detail.get('maxHeight')) {
       styles.maxHeight = this.props.detail.get('maxHeight')
     }
-
+    if (this.props.detail.get('minWidth')) {
+      styles.minWidth = this.props.detail.get('minWidth')
+    }
+    if (this.props.detail.get('maxWidth')) {
+      styles.maxWidth = this.props.detail.get('maxWidth')
+    }
     return <div
       className={cx({
         popupWindow: true,
