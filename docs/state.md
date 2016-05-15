@@ -152,6 +152,7 @@ WindowStore
     canGoForward: boolean,
     icon: string, // favicon url
     location: string, // The currently navigated location
+    provisionalLocation: string, // The location being navigated to
     src: string, // The iframe src attribute
     pinnedLocation: string, // Indicates if a frame is pinned and its pin location
     title: string, // page title
@@ -184,6 +185,7 @@ WindowStore
     },
     security: {
       isSecure: boolean, // is using https
+      isBypassed: boolean, // true if the user clicked through
       certDetails: {
         url: string,
         error: string,

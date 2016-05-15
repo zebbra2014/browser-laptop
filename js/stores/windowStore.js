@@ -197,7 +197,8 @@ const doAction = (action) => {
       windowState = windowState.mergeIn(['frames', FrameStateUtil.getFramePropsIndex(windowState.get('frames'), action.frameProps)], {
         loading: true,
         startLoadTime: new Date().getTime(),
-        endLoadTime: null
+        endLoadTime: null,
+        provisionalLocation: action.provisionalLocation
       })
       break
     case WindowConstants.WINDOW_WEBVIEW_LOAD_END:
@@ -460,10 +461,15 @@ const doAction = (action) => {
       if (action.securityState.secure !== undefined) {
         windowState = windowState.setIn(path.concat(['security', 'isSecure']),
                                         action.securityState.secure)
+      } else if (action.securityState.isBypassed !== undefined) {
+        windowState = windowState.setIn(path.concat(['security', 'isBypassed']),
+                                        action.securityState.isBypassed)
       }
       if (action.securityState.certDetails) {
-        windowState = windowState.setIn(path.concat(['security', 'certDetails']),
-                                        action.securityState.certDetails)
+        windowState = windowState.mergeIn(path.concat(['security']), {
+          certDetails: action.securityState.certDetails,
+          isBypassed: false
+        })
       }
       break
     case WindowConstants.WINDOW_SET_LOGIN_REQUIRED_DETAIL:

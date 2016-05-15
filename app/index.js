@@ -339,7 +339,7 @@ app.on('ready', () => {
       if (host) {
         acceptCertDomains[host] = true
       }
-      BrowserWindow.getFocusedWindow().webContents.send(messages.SHORTCUT_ACTIVE_FRAME_LOAD_URL, url)
+      BrowserWindow.getFocusedWindow().webContents.send(messages.SHORTCUT_ACTIVE_FRAME_BYPASS_CERT_ERROR, url)
     })
 
     ipcMain.on(messages.CHECK_CERT_ERROR_ACCEPTED, (event, host, frameKey) => {

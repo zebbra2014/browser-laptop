@@ -65,8 +65,7 @@ const windowActions = {
   loadUrl: function (frame, location) {
     location = location.trim()
     let newFrame = false
-    if (frame.get('pinnedLocation') && location !== 'about:certerror' &&
-        frame.get('location') !== 'about:certerror') {
+    if (frame.get('pinnedLocation')) {
       try {
         const origin1 = new window.URL(frame.get('location')).origin
         const origin2 = new window.URL(location).origin
@@ -109,7 +108,6 @@ const windowActions = {
     // For about: URLs, make sure we store the URL as about:something
     // and not what we map to.
     location = getSourceAboutUrl(location) || location
-
     if (UrlUtil.isURL(location)) {
       location = UrlUtil.getUrlFromInput(location)
     }
@@ -225,10 +223,17 @@ const windowActions = {
    *
    * @param {Object} frameProps - The frame properties for the webview in question.
    */
-  onWebviewLoadStart: function (frameProps) {
+  onWebviewLoadStart: function (frameProps, provisionalLocation) {
+    // For about: URLs, make sure we store the URL as about:something
+    // and not what we map to.
+    provisionalLocation = getSourceAboutUrl(provisionalLocation) || provisionalLocation
+    if (provisionalLocation === 'about:certerror') {
+      return
+    }
     dispatch({
       actionType: WindowConstants.WINDOW_WEBVIEW_LOAD_START,
-      frameProps
+      frameProps,
+      provisionalLocation
     })
   },
 

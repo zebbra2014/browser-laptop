@@ -81,8 +81,14 @@ class Frame extends ImmutableComponent {
       this.webview.setAttribute('allowRunningInsecureContent', true)
       this.webview.allowRunningInsecureContent = true
     }
-    this.webview.setAttribute('src',
-                              isSourceAboutUrl(src) ? getTargetAboutUrl(src) : src)
+
+    const security = this.props.frame.get('security')
+    const isCertError = security && security.get('certDetails') && !security.get('isBypassed')
+    if (isCertError) {
+      src = 'about:certerror'
+    }
+    src = isSourceAboutUrl(src) ? getTargetAboutUrl(src) : src
+    this.webview.setAttribute('src', src)
     if (webviewAdded) {
       this.webviewContainer.appendChild(this.webview)
       this.addEventListeners()
@@ -121,19 +127,20 @@ class Frame extends ImmutableComponent {
   componentDidUpdate (prevProps, prevState) {
     const location = this.props.frame.get('location')
     const prevLocation = prevProps.frame.get('location')
+    const prevSecurity = prevProps.frame.get('security')
+    const isPrevCertError = prevSecurity && prevSecurity.get('certDetails') && !prevSecurity.get('isBypassed')
     const didSrcChange = this.props.frame.get('src') !== prevProps.frame.get('src')
     const didLocationChange = location !== prevLocation
-    // When auto-redirecting to about:certerror, the frame location change and
-    // frame src change are emitted separately. Make sure updateWebview is
-    // called when the location changes.
     const hack = siteHacks[urlParse(location).hostname]
     const allowRunningInsecureContent = !!(hack && hack.allowRunningInsecureContent)
-    if (didSrcChange || didLocationChange && location === 'about:certerror' || !this.webview ||
+    const security = this.props.frame.get('security')
+    const isCertError = security && security.get('certDetails') && !security.get('isBypassed')
+    if (didSrcChange || (didLocationChange || isPrevCertError !== isCertError) && isCertError || !this.webview ||
         allowRunningInsecureContent !== this.webview.allowRunningInsecureContent) {
       this.updateWebview()
     }
-    if (didLocationChange && location !== 'about:certerror' &&
-        prevLocation !== 'about:certerror' &&
+    if (didLocationChange && !isCertError &&
+        !isPrevCertError &&
         urlParse(prevLocation).host !== urlParse(location).host) {
       // Keep track of one previous location so the cert error page can return to
       // it. Don't record same-origin location changes because these will
@@ -151,18 +158,10 @@ class Frame extends ImmutableComponent {
         this.webview.stop()
         break
       case 'reload':
-        if (['about:preferences', 'about:downloads', 'about:bookmarks', 'about:passwords', 'about:certerror'].includes(this.props.frame.get('location'))) {
+        if (['about:preferences', 'about:downloads', 'about:bookmarks', 'about:passwords'].includes(this.props.frame.get('location'))) {
           break
         }
-        // Ensure that the webview thinks we're on the same location as the browser does.
-        // This can happen for pages which don't load properly.
-        // Some examples are basic http auth and bookmarklets.
-        // In this case both the user display and the user think they're on frame.get('location').
-        if (this.webview.getURL() !== this.props.frame.get('location')) {
-          this.webview.loadURL(this.props.frame.get('location'))
-        } else {
-          this.webview.reload()
-        }
+        this.webview.reload()
         break
       case 'clean-reload':
         this.webview.reloadIgnoringCache()
@@ -333,15 +332,8 @@ class Frame extends ImmutableComponent {
     const loadStart = (event) => {
       if (event.isMainFrame && !event.isErrorPage && !event.isFrameSrcDoc) {
         // TODO: These 3 events should be combined into one
-        windowActions.onWebviewLoadStart(
-          this.props.frame)
-        const key = this.props.frame.get('key')
+        windowActions.onWebviewLoadStart(this.props.frame, event.url)
         const parsedUrl = urlParse(event.url)
-        // don't change url for non-display protocols like mailto
-        if (['http:', 'https:', 'about:', 'chrome:', 'chrome-extension:', 'file:',
-             'view-source:', 'ftp:', 'data:'].includes(parsedUrl.protocol)) {
-          windowActions.setLocation(event.url, key)
-        }
         const hack = siteHacks[parsedUrl.hostname]
         const isSecure = parsedUrl.protocol === 'https:' &&
           (!hack || !hack.allowRunningInsecureContent)
@@ -382,8 +374,8 @@ class Frame extends ImmutableComponent {
           security && security.get('certDetails')) {
         // Don't send certDetails.cert since it is big and crashes the page
         this.webview.send(messages.CERT_DETAILS_UPDATED, {
-          url: security.get('certDetails').url,
-          error: security.get('certDetails').error,
+          url: security.get('certDetails').get('url'),
+          error: security.get('certDetails').get('error'),
           previousLocation: this.previousLocation,
           frameKey: this.props.frame.get('key')
         })
@@ -412,6 +404,8 @@ class Frame extends ImmutableComponent {
       loadStart(event)
     })
     this.webview.addEventListener('did-navigate', (e) => {
+      const key = this.props.frame.get('key')
+      windowActions.setLocation(e.url, key)
       // only give focus focus is this is not the initial default page load
       if (this.props.isActive && this.webview.canGoBack() && document.activeElement !== this.webview) {
         this.webview.focus()
@@ -422,10 +416,12 @@ class Frame extends ImmutableComponent {
         this.props.frame,
         this.webview.getURL())
     })
-    this.webview.addEventListener('did-finish-load', () => {
+    this.webview.addEventListener('did-finish-load', (e) => {
       loadEnd()
     })
-    this.webview.addEventListener('did-navigate-in-page', () => {
+    this.webview.addEventListener('did-navigate-in-page', (e) => {
+      const key = this.props.frame.get('key')
+      windowActions.setLocation(e.url, key)
       loadEnd()
     })
     this.webview.addEventListener('enter-html-full-screen', () => {

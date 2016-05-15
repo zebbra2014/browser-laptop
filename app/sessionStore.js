@@ -107,7 +107,10 @@ module.exports.cleanSessionData = (sessionData) => {
     // Set the frame src to the last visited location
     // or else users will see the first visited URL.
     // Pinned location always get reset to what they are
-    frame.src = frame.pinnedLocation || frame.location
+    // Also use the provisionalLocation and let it figure out any error handling if needed
+    // this prevents things like about:certerror from being restored.
+    frame.src = frame.pinnedLocation || frame.provisionalLocation || frame.location
+    frame.location = frame.provisionalLocation || frame.location
 
     // If a blob is present for the thumbnail, create the object URL
     if (frame.thumbnailBlob) {

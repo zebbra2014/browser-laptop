@@ -244,13 +244,20 @@ class Main extends ImmutableComponent {
       windowActions.loadUrl(activeFrame, url)
     })
 
+    ipc.on(messages.SHORTCUT_ACTIVE_FRAME_BYPASS_CERT_ERROR, (e, url) => {
+      const activeFrame = FrameStateUtil.getActiveFrame(self.props.windowState)
+      windowActions.setSecurityState(activeFrame, {
+        isBypassed: true
+      })
+      windowActions.loadUrl(activeFrame, url)
+    })
+
     ipc.on(messages.CERT_ERROR, (e, details) => {
-      const frames = self.props.windowState.get('frames').filter((frame) => frame.get('location') === details.url)
+      const frames = self.props.windowState.get('frames').filter((frame) => frame.get('provisionalLocation') === details.url)
       frames.forEach((frame) => {
         windowActions.setSecurityState(frame, {
           certDetails: details
         })
-        windowActions.loadUrl(frame, 'about:certerror')
       })
     })
 

@@ -209,6 +209,10 @@ class UrlBar extends ImmutableComponent {
   }
 
   get locationValue () {
+    if (this.props.urlbar.get('location') === 'about:certerror') {
+      return this.props.activeFrameProps.get('provisionalLocation')
+    }
+
     return ['about:blank', 'about:newtab'].includes(this.props.urlbar.get('location'))
       ? '' : this.props.urlbar.get('location')
   }
