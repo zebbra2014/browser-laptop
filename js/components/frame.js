@@ -28,6 +28,7 @@ const consoleStrings = require('../constants/console')
 const { aboutUrls, isSourceAboutUrl, isTargetAboutUrl, getTargetAboutUrl, getBaseUrl } = require('../lib/appUrlUtil')
 const { isFrameError } = require('../lib/errorUtil')
 const siteSettings = require('../state/siteSettings')
+const locale = require('../l10n')
 
 class Frame extends ImmutableComponent {
   constructor () {
@@ -36,6 +37,10 @@ class Frame extends ImmutableComponent {
     this.onFind = this.onFind.bind(this)
     this.onFindHide = this.onFindHide.bind(this)
     this.onFocus = this.onFocus.bind(this)
+    // Maps notification message to its callback
+    this.notificationCallbacks = {}
+    // Hosts for which Flash is allowed to be detected
+    this.flashAllowedHosts = {}
   }
 
   getSiteSettings (url) {
@@ -502,8 +507,67 @@ class Frame extends ImmutableComponent {
       method.apply(this, e.args)
     })
 
+    const interceptFlash = () => {
+      this.webview.stop()
+      // Generate a random string that is unlikely to collide. Not
+      // cryptographically random.
+      const nonce = Math.random().toString()
+      ipc.send(messages.CHECK_FOR_FLASH, nonce)
+      ipc.once(messages.GOT_FLASH + nonce, (e, args) => {
+        if (args.installed) {
+          const host = urlParse(this.props.frame.get('location')).host
+          if (!host) {
+            return
+          }
+          const message = `Allow ${host} to run Flash Player?`
+          // Show Flash notification bar
+          appActions.showMessageBox({
+            buttons: [locale.translation('deny'), locale.translation('allow')],
+            message,
+            options: {
+              nonce
+            }
+          })
+          this.notificationCallbacks[message] = (buttonIndex) => {
+            if (buttonIndex === 1) {
+              this.flashAllowedHosts[host] = true
+              this.webview.send(messages.ALLOW_FLASH, host)
+            } else {
+              appActions.hideMessageBox(message)
+            }
+          }
+        }
+      })
+      ipc.once(messages.NOTIFICATION_RESPONSE + nonce, (e, msg, buttonIndex) => {
+        const cb = this.notificationCallbacks[msg]
+        if (cb) {
+          cb(buttonIndex)
+        }
+      })
+    }
+
     const loadStart = (e) => {
       const parsedUrl = urlParse(e.url)
+      // Instead of telling person to install Flash, ask them if they want to
+      // run Flash if it's installed.
+      const currentUrl = urlParse(this.props.frame.get('location'))
+      if (parsedUrl && parsedUrl.hostname === 'get.adobe.com' &&
+          parsedUrl.pathname.startsWith('/flashplayer') &&
+          ['http:', 'https:'].includes(currentUrl.protocol) &&
+          currentUrl.hostname !== 'get.adobe.com') {
+        interceptFlash()
+      }
+      // Make sure a page that is trying to run Flash is actually allowed
+      if (parsedUrl.search && parsedUrl.search.includes('brave_flash_allowed')) {
+        if (parsedUrl.host in this.flashAllowedHosts) {
+          // Remove it so Flash only is allowed once
+          this.flashAllowedHosts[parsedUrl.host] === undefined
+        } else {
+          this.webview.stop()
+          parsedUrl.search = parsedUrl.search.replace('brave_flash_allowed', 'brave_flash_blocked')
+          windowActions.loadUrl(this.props.frame, parsedUrl.format())
+        }
+      }
       if (e.isMainFrame && !e.isErrorPage && !e.isFrameSrcDoc) {
         windowActions.onWebviewLoadStart(this.props.frame, e.url)
         const isSecure = parsedUrl.protocol === 'https:' && !this.allowRunningInsecureContent()
@@ -515,6 +579,7 @@ class Frame extends ImmutableComponent {
           ipc.send(messages.CHECK_CERT_ERROR_ACCEPTED, parsedUrl.host, this.props.frame.get('key'))
         }
       }
+
       if (this.fpEnabled(e.url)) {
         this.webview.send(messages.BLOCK_CANVAS_FINGERPRINTING)
       }
@@ -590,6 +655,10 @@ class Frame extends ImmutableComponent {
       loadStart(e)
     })
     this.webview.addEventListener('did-navigate', (e) => {
+      for (let message in this.notificationCallbacks) {
+        appActions.hideMessageBox(message)
+      }
+      this.notificationCallbacks = {}
       // only give focus focus is this is not the initial default page load
       if (this.props.isActive && this.webview.canGoBack() && document.activeElement !== this.webview) {
         this.webview.focus()

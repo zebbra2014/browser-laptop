@@ -1092,6 +1092,59 @@ if (typeof KeyEvent === 'undefined') {
   })
   /* End canvas fingerprinting detection */
 
+  /* Begin pretending Flash doesn't exist */
+  function blockFlash () {
+    const handler = {
+      length: 0,
+      item: () => { return null },
+      namedItem: () => { return null },
+      refresh: () => {}
+    }
+    Navigator.prototype.__defineGetter__('plugins', () => { return handler })
+    Navigator.prototype.__defineGetter__('mimeTypes', () => { return handler })
+  }
+
+  function getBlockFlashPageScript () {
+    return '(' + Function.prototype.toString.call(blockFlash) + '());'
+  }
+
+  // Open flash links in the same tab so we can intercept them correctly
+  (function () {
+    function replaceAdobeLinks () {
+      Array.from(document.querySelectorAll('a[target="_blank"]')).forEach((elem) => {
+        const href = elem.getAttribute('href')
+        if (href && href.toLowerCase().includes('//get.adobe.com/flashplayer')) {
+          elem.setAttribute('target', '')
+        }
+      })
+    }
+    // Some pages insert the password form into the DOM after it's loaded
+    var observer = new MutationObserver(function (mutations) {
+      mutations.forEach(function (mutation) {
+        if (mutation.addedNodes.length) {
+          replaceAdobeLinks()
+        }
+      })
+    })
+    replaceAdobeLinks()
+    observer.observe(document.documentElement, {
+      childList: true
+    })
+  })()
+
+  if (!window.location.search ||
+      !window.location.search.includes('brave_flash_allowed')) {
+    insertScript(getBlockFlashPageScript())
+  }
+  ipcRenderer.on('allow-flash', function (e, host) {
+    if (host === window.location.host) {
+      window.location.search = window.location.search
+        ? window.location.search + '&brave_flash_allowed'
+        : '?brave_flash_allowed'
+    }
+  })
+  /* End pretending Flash doesn't exist */
+
   /* Begin block of third-party client-side storage */
 
   /**

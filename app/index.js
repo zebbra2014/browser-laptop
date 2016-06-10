@@ -371,6 +371,12 @@ app.on('ready', () => {
       }
     })
 
+    ipcMain.on(messages.CHECK_FOR_FLASH, (event, nonce) => {
+      event.sender.send(messages.GOT_FLASH + nonce, {
+        installed: flash.checkForFlash()
+      })
+    })
+
     AppStore.addChangeListener(() => {
       Menu.init(AppStore.getState().get('settings'))
       // This is debounced to every 5 minutes, the save is not particularly intensive but it does do IO
