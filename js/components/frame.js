@@ -507,7 +507,7 @@ class Frame extends ImmutableComponent {
       method.apply(this, e.args)
     })
 
-    const interceptFlash = () => {
+    const interceptFlash = (url) => {
       this.webview.stop()
       // Generate a random string that is unlikely to collide. Not
       // cryptographically random.
@@ -536,6 +536,8 @@ class Frame extends ImmutableComponent {
               appActions.hideMessageBox(message)
             }
           }
+        } else {
+          windowActions.loadUrl(this.props.frame, url)
         }
       })
       ipc.once(messages.NOTIFICATION_RESPONSE + nonce, (e, msg, buttonIndex) => {
@@ -555,7 +557,7 @@ class Frame extends ImmutableComponent {
            e.url.includes('//www.adobe.com/go/getflashplayer')) &&
           ['http:', 'https:'].includes(currentUrl.protocol) &&
           !currentUrl.hostname.includes('.adobe.com')) {
-        interceptFlash()
+        interceptFlash(e.url)
       }
       // Make sure a page that is trying to run Flash is actually allowed
       if (parsedUrl.search && parsedUrl.search.includes('brave_flash_allowed')) {

@@ -62,8 +62,6 @@ let throttleKeytar = false
 // Map of password notification bar messages to their callbacks
 const passwordCallbacks = {}
 
-flash.init()
-
 /**
  * Gets the master key for encrypting login credentials from the OS keyring.
  */
@@ -177,11 +175,14 @@ const initiateSessionStateSave = (beforeQuit) => {
   }
 }
 
+if (SessionStore.getFlashState() === true) {
+  flash.init()
+}
+
 app.on('ready', () => {
   let loadAppStatePromise = SessionStore.loadAppState().catch(() => {
     return SessionStore.defaultAppState()
   })
-
   app.on('certificate-error', (e, webContents, url, error, cert, cb) => {
     let host = urlParse(url).host
     if (host && acceptCertDomains[host] === true) {
@@ -372,8 +373,10 @@ app.on('ready', () => {
     })
 
     ipcMain.on(messages.CHECK_FOR_FLASH, (event, nonce) => {
+      const state = AppStore.getState()
+      const installed = state.getIn(['flash', 'enabled']) ? flash.checkForFlash() : false
       event.sender.send(messages.GOT_FLASH + nonce, {
-        installed: flash.checkForFlash()
+        installed
       })
     })
 

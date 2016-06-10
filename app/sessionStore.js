@@ -210,6 +210,18 @@ module.exports.cleanAppData = (data) => {
 }
 
 /**
+ * Checks whether Flash is enabled. This has to happen before the app is ready.
+ */
+module.exports.getFlashState = () => {
+  try {
+    const data = fs.readFileSync(storagePath, 'utf8')
+    return JSON.parse(data).flash.enabled
+  } catch (e) {
+    return false
+  }
+}
+
+/**
  * Loads the browser state from storage.
  *
  * @return a promise which resolves with the immutable browser state or
