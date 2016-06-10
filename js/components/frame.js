@@ -551,10 +551,10 @@ class Frame extends ImmutableComponent {
       // Instead of telling person to install Flash, ask them if they want to
       // run Flash if it's installed.
       const currentUrl = urlParse(this.props.frame.get('location'))
-      if (parsedUrl && parsedUrl.hostname === 'get.adobe.com' &&
-          parsedUrl.pathname.startsWith('/flashplayer') &&
+      if ((e.url.includes('//get.adobe.com/flashplayer') ||
+           e.url.includes('//www.adobe.com/go/getflashplayer')) &&
           ['http:', 'https:'].includes(currentUrl.protocol) &&
-          currentUrl.hostname !== 'get.adobe.com') {
+          !currentUrl.hostname.includes('.adobe.com')) {
         interceptFlash()
       }
       // Make sure a page that is trying to run Flash is actually allowed

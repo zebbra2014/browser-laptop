@@ -1113,7 +1113,9 @@ if (typeof KeyEvent === 'undefined') {
     function replaceAdobeLinks () {
       Array.from(document.querySelectorAll('a[target="_blank"]')).forEach((elem) => {
         const href = elem.getAttribute('href')
-        if (href && href.toLowerCase().includes('//get.adobe.com/flashplayer')) {
+        if (href &&
+            (href.toLowerCase().includes('//get.adobe.com/flashplayer') ||
+             href.toLowerCase().includes('//www.adobe.com/go/getflashplayer'))) {
           elem.setAttribute('target', '')
         }
       })
