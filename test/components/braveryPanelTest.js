@@ -101,22 +101,22 @@ describe('Bravery Panel', function () {
     it('blocks fingerprinting', function * () {
       const url = Brave.server.url('fingerprinting.html')
       yield this.app.client
-        .click(fpSwitch)
         .tabByIndex(0)
         .loadUrl(url)
         .url(url)
         .windowByUrl(Brave.browserWindowUrl)
         .waitForVisible(braveMenu)
         .waitForVisible(braveryPanel)
+        .click(fpSwitch)
         .waitUntil(function () {
           return this.getText(fpStat)
             .then((stat) => stat === '3')
         })
+        .click(fpSwitch)
     })
     it('allows fingerprinting when setting is off', function * () {
       const url = Brave.server.url('fingerprinting.html')
       yield this.app.client
-        .click(fpSwitch)
         .tabByIndex(0)
         .loadUrl(url)
         .url(url)
