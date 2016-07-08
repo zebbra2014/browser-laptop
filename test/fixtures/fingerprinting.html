@@ -5,22 +5,12 @@ function init() {
   // WebRTC from https://github.com/diafygi/webrtc-ips
   try {
       var RTCPeerConnection = window.webkitRTCPeerConnection;
-      //minimal requirements for data connection
-      var mediaConstraints = {
-          optional: [{RtpDataChannels: true}]
-      };
       var servers = {iceServers: [{urls: "stun:stun.services.mozilla.com"}]};
       //construct a new RTCPeerConnection
-      var pc = new RTCPeerConnection(servers, mediaConstraints);
-      //listen for candidate events
-      pc.onicecandidate = function(ice){
-      };
-      //create a bogus data channel
-      pc.createDataChannel("");
+      var pc = new RTCPeerConnection(servers);
       //create an offer sdp
       pc.createOffer(function(result){
           //trigger the stun server request
-          pc.setLocalDescription(result, function(){}, function(){});
       }, function(){});
   } catch (e) {}
 
