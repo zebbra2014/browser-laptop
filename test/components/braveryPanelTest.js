@@ -127,7 +127,7 @@ describe('Bravery Panel', function () {
             .then((size) => size.height > 0)
         })
     })
-    it('blocks fingerprinting', function * () {
+    it.only('blocks fingerprinting', function * () {
       const url = Brave.server.url('fingerprinting.html')
       yield this.app.client
         .tabByIndex(0)
@@ -137,7 +137,10 @@ describe('Bravery Panel', function () {
         .click(fpSwitch)
         .waitUntil(function () {
           return this.getText(fpStat)
-            .then((stat) => stat === '3')
+            .then((stat) => {
+              console.log('------------stat: ', stat)
+              return stat === '3'
+            })
         })
     })
     it('allows fingerprinting when setting is off', function * () {
