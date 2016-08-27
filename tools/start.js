@@ -3,10 +3,9 @@ const spawn = require('child_process').spawn
 
 process.env.NODE_ENV = process.env.NODE_ENV || 'development'
 const options = {
-  env: process.env,
-  cwd: path.join(__dirname, '..')
+  env: process.env
 }
-const electron = spawn('electron', ['./'].concat(process.argv.slice(2)), options)
+const electron = spawn('electron', [path.join(__dirname, '..')].concat(process.argv.slice(2)), options)
 
 electron.stdout.pipe(process.stdout)
 electron.stderr.pipe(process.stderr)
