@@ -721,6 +721,11 @@ app.on('ready', () => {
       process.on(messages.UPDATE_META_DATA_RETRIEVED, (metadata) => {
         console.log(metadata)
       })
+
+      // This is fired by a menu entry
+      process.on(messages.IMPORT_BROWSER_DATA_NOW, () => {
+        Importer.init()
+      })
     })
   })
 })

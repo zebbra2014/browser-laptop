@@ -144,7 +144,7 @@ var rendererIdentifiers = function () {
     'preferences',
     'settings',
     'bookmarksManager',
-    'importBookmarks',
+    'importBrowserData',
     'reportAnIssue',
     'submitFeedback',
     'bookmarksToolbar',

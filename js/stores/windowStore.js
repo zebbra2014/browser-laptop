@@ -13,7 +13,6 @@ const ipc = global.require('electron').ipcRenderer
 const messages = require('../constants/messages')
 const debounce = require('../lib/debounce.js')
 const getSetting = require('../settings').getSetting
-const importFromHTML = require('../lib/importer').importFromHTML
 const UrlUtil = require('../lib/urlutil')
 const urlParse = require('url').parse
 const currentWindow = require('../../app/renderer/currentWindow')
@@ -814,21 +813,6 @@ ipc.on(messages.SHORTCUT_OPEN_CLEAR_BROWSING_DATA_PANEL, (e, clearBrowsingDataDe
     actionType: WindowConstants.WINDOW_SET_CLEAR_BROWSING_DATA_DETAIL,
     clearBrowsingDataDetail
   })
-})
-
-ipc.on(messages.IMPORT_BOOKMARKS, () => {
-  const dialog = require('electron').remote.dialog
-  const files = dialog.showOpenDialog({
-    properties: ['openFile'],
-    filters: [{
-      name: 'HTML',
-      extensions: ['html', 'htm']
-    }]
-  })
-  if (files && files.length > 0) {
-    const file = files[0]
-    importFromHTML(file)
-  }
 })
 
 const frameShortcuts = ['stop', 'reload', 'zoom-in', 'zoom-out', 'zoom-reset', 'toggle-dev-tools', 'clean-reload', 'view-source', 'mute', 'save', 'print', 'show-findbar', 'copy', 'find-next', 'find-prev', 'clone']

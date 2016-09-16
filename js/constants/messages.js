@@ -135,8 +135,6 @@ const messages = {
   SET_CERT_ERROR_DETAIL: _,
   SET_SECURITY_STATE: _, /** @arg {number} key of frame, @arg {Object} security state */
   HTTPSE_RULE_APPLIED: _, /** @arg {string} name of ruleset file, @arg {Object} details of rewritten request */
-  // Bookmarks
-  IMPORT_BOOKMARKS: _,
   // Extensions
   NEW_POPUP_WINDOW: _,
   // NoScript
