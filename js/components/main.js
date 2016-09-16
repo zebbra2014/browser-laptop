@@ -29,6 +29,7 @@ const BrowserActionButton = require('../../app/renderer/components/browserAction
 const SiteInfo = require('./siteInfo')
 const BraveryPanel = require('./braveryPanel')
 const ClearBrowsingDataPanel = require('./clearBrowsingDataPanel')
+const ImportBrowserDataPanel = require('./importBrowserDataPanel')
 const AutofillAddressPanel = require('./autofillAddressPanel')
 const AutofillCreditCardPanel = require('./autofillCreditCardPanel')
 const AddEditBookmark = require('./addEditBookmark')
@@ -82,6 +83,7 @@ class Main extends ImmutableComponent {
     this.onHideSiteInfo = this.onHideSiteInfo.bind(this)
     this.onHideBraveryPanel = this.onHideBraveryPanel.bind(this)
     this.onHideClearBrowsingDataPanel = this.onHideClearBrowsingDataPanel.bind(this)
+    this.onHideImportBrowserDataPanel = this.onHideImportBrowserDataPanel.bind(this)
     this.onHideAutofillAddressPanel = this.onHideAutofillAddressPanel.bind(this)
     this.onHideAutofillCreditCardPanel = this.onHideAutofillCreditCardPanel.bind(this)
     this.onHideNoScript = this.onHideNoScript.bind(this)
@@ -374,6 +376,11 @@ class Main extends ImmutableComponent {
       windowActions.setContextMenuDetail()
     })
 
+    ipc.on(messages.IMPORTER_LIST, (e, detail) => {
+      windowActions.setImportBrowserDataDetail(detail)
+      windowActions.setImportBrowserDataSelected({})
+    })
+
     this.loadSearchProviders()
 
     window.addEventListener('mousemove', (e) => {
@@ -530,6 +537,10 @@ class Main extends ImmutableComponent {
 
   onHideClearBrowsingDataPanel () {
     windowActions.setClearBrowsingDataDetail()
+  }
+
+  onHideImportBrowserDataPanel () {
+    windowActions.setImportBrowserDataDetail()
   }
 
   onHideAutofillAddressPanel () {
@@ -731,6 +742,7 @@ class Main extends ImmutableComponent {
     const braveShieldsDisabled = this.braveShieldsDisabled
     const braveryPanelIsVisible = !braveShieldsDisabled && this.props.windowState.get('braveryPanelDetail')
     const clearBrowsingDataPanelIsVisible = this.props.windowState.get('clearBrowsingDataDetail')
+    const importBrowserDataPanelIsVisible = this.props.windowState.get('importBrowserDataDetail')
     const autofillAddressPanelIsVisible = this.props.windowState.get('autofillAddressDetail')
     const autofillCreditCardPanelIsVisible = this.props.windowState.get('autofillCreditCardDetail')
     const activeRequestedLocation = this.activeRequestedLocation
@@ -744,6 +756,7 @@ class Main extends ImmutableComponent {
       !siteInfoIsVisible &&
       !braveryPanelIsVisible &&
       !clearBrowsingDataPanelIsVisible &&
+      !importBrowserDataPanelIsVisible &&
       !autofillAddressPanelIsVisible &&
       !autofillCreditCardPanelIsVisible &&
       !releaseNotesIsVisible &&
@@ -835,6 +848,14 @@ class Main extends ImmutableComponent {
             ? <ClearBrowsingDataPanel
               clearBrowsingDataDetail={this.props.windowState.get('clearBrowsingDataDetail')}
               onHide={this.onHideClearBrowsingDataPanel} />
+            : null
+          }
+          {
+           importBrowserDataPanelIsVisible
+            ? <ImportBrowserDataPanel
+              importBrowserDataDetail={this.props.windowState.get('importBrowserDataDetail')}
+              importBrowserDataSelected={this.props.windowState.get('importBrowserDataSelected')}
+              onHide={this.onHideImportBrowserDataPanel} />
             : null
           }
           {

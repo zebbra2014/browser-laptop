@@ -702,6 +702,20 @@ const doAction = (action) => {
         windowState = windowState.set('clearBrowsingDataDetail', Immutable.fromJS(action.clearBrowsingDataDetail))
       }
       break
+    case WindowConstants.WINDOW_SET_IMPORT_BROWSER_DATA_DETAIL:
+      if (!action.importBrowserDataDetail) {
+        windowState = windowState.delete('importBrowserDataDetail')
+      } else {
+        windowState = windowState.set('importBrowserDataDetail', Immutable.fromJS(action.importBrowserDataDetail))
+      }
+      break
+    case WindowConstants.WINDOW_SET_IMPORT_BROWSER_DATA_SELECTED:
+      if (!action.selected) {
+        windowState = windowState.delete('importBrowserDataSelected')
+      } else {
+        windowState = windowState.set('importBrowserDataSelected', Immutable.fromJS(action.selected))
+      }
+      break
     case WindowConstants.WINDOW_SET_AUTOFILL_ADDRESS_DETAIL:
       if (!action.currentDetail && !action.originalDetail) {
         windowState = windowState.delete('autofillAddressDetail')

@@ -41,6 +41,7 @@ const ipcMain = electron.ipcMain
 const Immutable = require('immutable')
 const Menu = require('./browser/menu')
 const Updater = require('./updater')
+const Importer = require('./importer')
 const messages = require('../js/constants/messages')
 const appConfig = require('../js/constants/appConfig')
 const appActions = require('../js/actions/appActions')
@@ -691,6 +692,10 @@ app.on('ready', () => {
       if (prefsRestartCallbacks[message]) {
         prefsRestartCallbacks[message](buttonIndex, persist)
       }
+    })
+
+    ipcMain.on(messages.IMPORT_BROWSER_DATA_NOW, () => {
+      Importer.init()
     })
 
     // Setup the crash handling

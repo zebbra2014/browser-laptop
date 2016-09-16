@@ -505,6 +505,23 @@ WindowStore
     month: string,
     year: string,
     guid: Object.<string, <string>> // map of (partition, id) used to access the autofill entry in database
+  },
+  importBrowserDataDetail: [
+    {
+      index: string,
+      type: number,
+      name: string,
+      history: boolean,
+      favorites: boolean,
+      cookies: boolean
+    }
+  ],
+  importBroserDataSelected: {
+    index: string,
+    type: number,
+    history: boolean,
+    favorites: boolean,
+    cookies: boolean
   }
 }
 ```
